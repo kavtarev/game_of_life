@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Field struct {
 	cells []*Cell
@@ -9,16 +11,16 @@ type Field struct {
 }
 
 func (f *Field) createCells() {
-	f.cells = make([]*Cell, f.size)
-	for i := 0; i < f.size; i++ {
-		f.cells[i].i = i
+	f.cells = make([]*Cell, f.size*f.size)
+	for i := 0; i < f.size*f.size; i++ {
+		f.cells[i] = &Cell{i: i}
 	}
 }
 
 func NewField(size int) *Field {
 	field := Field{size: size}
 	field.createCells()
-	for i := 0; i < field.size; i++ {
+	for i := 0; i < len(field.cells); i++ {
 		field.cells[i].selectNeighbors(&field)
 	}
 
@@ -65,6 +67,7 @@ func (c *Cell) selectNeighbors(f *Field) {
 	// top left
 	if c.i == 0 {
 		c.neighbors = []*Cell{f.cells[1], f.cells[f.size], f.cells[f.size+1]}
+
 		return
 	}
 	// top right
@@ -98,7 +101,7 @@ func (c *Cell) selectNeighbors(f *Field) {
 		return
 	}
 	// right column no corners
-	if c.i%f.size == 0 {
+	if (c.i+1)%f.size == 0 {
 		c.neighbors = []*Cell{f.cells[c.i-f.size], f.cells[c.i+f.size], f.cells[c.i-f.size-1], f.cells[c.i-1], f.cells[c.i+f.size-1]}
 		return
 	}
@@ -109,5 +112,5 @@ func (c *Cell) selectNeighbors(f *Field) {
 func main() {
 	f := NewField(3)
 
-	fmt.Println(f)
+	fmt.Printf("%+v", f.cells[0].neighbors[0])
 }
