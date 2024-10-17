@@ -81,30 +81,24 @@ func (c *Cell) setNewCondition() {
 		}
 	}
 
-	// fmt.Println(c.i, aliveCount)
-
 	if aliveCount < 2 || aliveCount > 3 {
 		c.tempState = false
 		return
 	}
-
 	if aliveCount == 3 {
 		c.tempState = true
 		return
 	}
-
 	if aliveCount == 2 && c.state {
 		c.tempState = true
 		return
 	}
-
 }
 
 func (c *Cell) selectNeighbors(f *Field) {
 	// top left
 	if c.i == 0 {
 		c.neighbors = []*Cell{f.cells[1], f.cells[f.size], f.cells[f.size+1]}
-
 		return
 	}
 	// top right
