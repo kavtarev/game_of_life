@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
+	// "io"
+	"log"
 	"net/http"
 	"time"
 
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 )
 
 type Message struct {
@@ -27,6 +28,13 @@ type Server struct {
 	conns map[string]*Connection
 }
 
+var upgrader = websocket.Upgrader{
+	// Разрешаем подключения с любого источника
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
 func NewServer(port string) *Server {
 	return &Server{
 		port:  port,
@@ -37,55 +45,80 @@ func NewServer(port string) *Server {
 func (s *Server) Run() {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/ss", s.HandleStatic)
-	mux.Handle("/ws", websocket.Handler(s.HandleConn))
+	mux.HandleFunc("/next", s.HandleComputeNextForm)
+	mux.HandleFunc("/ws", s.handleConnections)
 	mux.Handle("/", http.FileServer(http.Dir("../front")))
 
 	http.ListenAndServe(s.port, mux)
 }
 
-func (s *Server) HandleStatic(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("works"))
-}
+func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
+	// Обновляем HTTP-соединение до WebSocket
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Fatalf("Ошибка при апгрейде соединения: %v", err)
+	}
+	defer ws.Close()
 
-func (s *Server) HandleConn(ws *websocket.Conn) {
+	fmt.Println("Новое WebSocket соединение")
+
 	id := fmt.Sprintf("%v", time.Now().Nanosecond())
 
-	conn := &Connection{ws: ws, field: NewField(10), stopCh: make(chan struct{})}
+	conn := &Connection{ws: ws, field: NewField(100), stopCh: make(chan struct{})}
 	s.conns[id] = conn
-	s.sendEvent(ws, "init", "init")
-	s.listenToSocket(ws, conn)
-
-}
-
-func (s *Server) sendEvent(ws *websocket.Conn, data, event string) {
-	msg, _ := json.Marshal(Message{Data: data, Event: event})
-	ws.Write(msg)
-}
-
-func (s *Server) listenToSocket(ws *websocket.Conn, conn *Connection) {
-	buf := make([]byte, 1000000)
 
 	for {
-		b, err := ws.Read(buf)
-
+		// Чтение сообщения из WebSocket
+		_, message, err := ws.ReadMessage()
 		if err != nil {
-			id, findErr := s.findId(ws)
-			if findErr != nil {
-				return
-			}
-
-			delete(s.conns, id)
-
-			if err == io.EOF {
-				fmt.Println("eof error, client closed connection")
-				break
-			}
-
+			log.Printf("Ошибка при чтении сообщения: %v", err)
+			break
 		}
-		s.parseMessage(ws, buf[:b], conn)
+
+		fmt.Printf("Получено сообщение: %s\n", message)
+
+		s.parseMessage(ws, message, conn)
+
+	}
+}
+
+func (s *Server) HandleComputeNextForm(w http.ResponseWriter, r *http.Request) {
+	type Body struct {
+		Data string `json:"data"`
 	}
 
+	var b Body
+
+	if r.Method != http.MethodPost {
+		w.WriteHeader(404)
+		w.Write([]byte("Only Post"))
+		return
+	}
+
+	d := json.NewDecoder(r.Body)
+	d.DisallowUnknownFields()
+
+	if err := d.Decode(&b); err != nil {
+		w.WriteHeader(400)
+		w.Write([]byte("Invalid Data"))
+		return
+	}
+
+	f := NewField(100)
+	f.update(b.Data)
+	f.run()
+
+	type Resp struct {
+		Data string `json:"data"`
+	}
+
+	resp := Resp{Data: f.getStateString()}
+
+	m, err := json.Marshal(resp)
+	if err != nil {
+		panic(err)
+	}
+	w.Write(m)
 }
 
 func (s *Server) findId(ws *websocket.Conn) (string, error) {
@@ -102,6 +135,7 @@ func (s *Server) parseMessage(ws *websocket.Conn, b []byte, conn *Connection) {
 	msg := Message{}
 
 	if err := json.Unmarshal(b, &msg); err != nil {
+		fmt.Println("in json unmarshal")
 		panic(err)
 	}
 
@@ -120,7 +154,7 @@ func (s *Server) parseMessage(ws *websocket.Conn, b []byte, conn *Connection) {
 				case <-ticker.C:
 					conn.field.run()
 					msg, _ := json.Marshal(Message{Data: conn.field.getStateString(), Event: "update"})
-					ws.Write(msg)
+					ws.WriteMessage(1, msg)
 				case <-conn.stopCh:
 					return
 				}

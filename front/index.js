@@ -1,9 +1,11 @@
 const field = document.getElementById('field');
 const startBtn = document.getElementById('start-btn');
 const stopBtn = document.getElementById('stop-btn');
+const nextBtn = document.getElementById('next-btn');
+const clearBtn = document.getElementById('clear-btn');
 
 const inputs = []
-const COUNT = 100
+const COUNT = 10000
 
 const ws = new WebSocket('ws://127.0.0.1:3000/ws')
 
@@ -19,15 +21,34 @@ stopBtn.addEventListener('click', () => {
   ws.send(JSON.stringify({ event: 'stop' }))
 })
 
+nextBtn.addEventListener('click', async () => {
+  const arr = new Array(COUNT)
+  for (let i = 0; i < COUNT; i++) {
+    arr[i] = inputs[i].checked ? '1' : '0'
+  }
+  const r = await fetch('http://localhost:3000/next', {
+    method: 'POST', headers: {
+      'content-type': 'application/json'
+    }, body: JSON.stringify({ data: arr.join('') })
+  })
+
+  const js = await r.json()
+  updateState(js.data)
+})
+
+clearBtn.addEventListener('click', () => {
+  inputs.forEach(f => f.checked = false)
+})
+
 ws.onmessage = function (msg) {
   try {
     const data = JSON.parse(msg.data)
+
     switch (data.event) {
       case 'init':
         console.log('init')
         break;
       case 'update':
-        console.log(data);
         updateState(data.data)
         break;
       default:
