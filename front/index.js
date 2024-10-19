@@ -79,19 +79,3 @@ async function wait() {
     setTimeout(() => r(), 2000)
   })
 }
-
-// async function run() {
-//   await wait()
-//   const str = new Array(COUNT).fill('1').join('')
-
-//   console.time('start')
-//   for (let i = 0; i < str.length; i++) {
-//     if (str[i] === '1') {
-//       inputs[i].checked = true
-//     }
-//   }
-//   console.timeEnd('start')
-
-// }
-
-// run()

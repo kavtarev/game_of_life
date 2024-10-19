@@ -2,9 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-	// "io"
 	"log"
 	"net/http"
 	"time"
@@ -18,9 +16,10 @@ type Message struct {
 }
 
 type Connection struct {
-	ws     *websocket.Conn
-	field  *Field
-	stopCh chan struct{}
+	ws               *websocket.Conn
+	field            *Field
+	stopCh           chan struct{}
+	isGameInProgress bool
 }
 
 type Server struct {
@@ -53,7 +52,6 @@ func (s *Server) Run() {
 }
 
 func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
-	// Обновляем HTTP-соединение до WebSocket
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Fatalf("Ошибка при апгрейде соединения: %v", err)
@@ -68,17 +66,16 @@ func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 	s.conns[id] = conn
 
 	for {
-		// Чтение сообщения из WebSocket
 		_, message, err := ws.ReadMessage()
 		if err != nil {
 			log.Printf("Ошибка при чтении сообщения: %v", err)
+			conn.stopCh <- struct{}{}
+			delete(s.conns, id)
+			close(conn.stopCh)
 			break
 		}
 
-		fmt.Printf("Получено сообщение: %s\n", message)
-
 		s.parseMessage(ws, message, conn)
-
 	}
 }
 
@@ -121,16 +118,6 @@ func (s *Server) HandleComputeNextForm(w http.ResponseWriter, r *http.Request) {
 	w.Write(m)
 }
 
-func (s *Server) findId(ws *websocket.Conn) (string, error) {
-	for id, v := range s.conns {
-		if v.ws == ws {
-			return id, nil
-		}
-	}
-
-	return "", errors.New("not found connection to delete")
-}
-
 func (s *Server) parseMessage(ws *websocket.Conn, b []byte, conn *Connection) {
 	msg := Message{}
 
@@ -141,25 +128,28 @@ func (s *Server) parseMessage(ws *websocket.Conn, b []byte, conn *Connection) {
 
 	switch msg.Event {
 	case "start":
-		conn.field.update(msg.Data)
-		go func() {
-			ticker := time.NewTicker(1 * time.Second)
-			defer func() {
-				ticker.Stop()
-				fmt.Println("exit goroutine")
-			}()
+		if !conn.isGameInProgress {
+			conn.isGameInProgress = true
+			conn.field.update(msg.Data)
+			go func() {
+				ticker := time.NewTicker(1 * time.Second)
+				defer func() {
+					ticker.Stop()
+					fmt.Println("exit goroutine")
+				}()
 
-			for {
-				select {
-				case <-ticker.C:
-					conn.field.run()
-					msg, _ := json.Marshal(Message{Data: conn.field.getStateString(), Event: "update"})
-					ws.WriteMessage(1, msg)
-				case <-conn.stopCh:
-					return
+				for {
+					select {
+					case <-ticker.C:
+						conn.field.run()
+						msg, _ := json.Marshal(Message{Data: conn.field.getStateString(), Event: "update"})
+						ws.WriteMessage(1, msg)
+					case <-conn.stopCh:
+						return
+					}
 				}
-			}
-		}()
+			}()
+		}
 	case "stop":
 		conn.stopCh <- struct{}{}
 	}
