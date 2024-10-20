@@ -5,4 +5,4 @@ export DB_NAME=postgres
 export DB_USER=postgres
 export DB_PASSWORD=postgres
 
-go build -o ./bin/game_of_life ./cmd/main && ./bin/main
+go build -o ./bin/game_of_life ./cmd/main && ./bin/game_of_life
