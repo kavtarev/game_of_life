@@ -53,6 +53,12 @@ func (s *Server) Run() {
 	http.ListenAndServe(s.port, mux)
 }
 
+func (s *Server) mapperWithStorage(f func(w http.ResponseWriter, r *http.Request, db any)) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		f(w, r, s.conns)
+	}
+}
+
 func (s *Server) handleConnections(w http.ResponseWriter, r *http.Request) {
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
