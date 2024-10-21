@@ -57,9 +57,9 @@ func (s *Server) Run() {
 	http.ListenAndServe(s.port, mux)
 }
 
-func (s *Server) mapperWithStorage(f func(w http.ResponseWriter, r *http.Request, db any)) func(w http.ResponseWriter, r *http.Request) {
+func (s *Server) mapperWithStorage(f func(w http.ResponseWriter, r *http.Request, db *db.Storage)) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		f(w, r, s.conns)
+		f(w, r, s.storage)
 	}
 }
 
