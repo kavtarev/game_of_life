@@ -3,35 +3,30 @@ package db
 import (
 	"database/sql"
 	"fmt"
-
 	_ "github.com/lib/pq"
+	"os"
 )
 
-func NewDb() {
-	dbStr := "postgres://postgres:postgres@127.0.0.1:5433/postgres?sslmode=disable"
+type Storage struct {
+	Con *sql.DB
+}
+
+func NewDb() (Storage, error) {
+	user := os.Getenv("DB_USER")
+	pass := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	port := os.Getenv("DB_PORT")
+
+	dbStr := fmt.Sprintf("postgres://%v:%v@127.0.0.1:%v/%v?sslmode=disable", user, pass, port, dbName)
 	c, err := sql.Open("postgres", dbStr)
 	if err != nil {
-		panic(err)
+		return Storage{}, err
 	}
 
 	err = c.Ping()
 	if err != nil {
-		panic(err)
+		return Storage{}, err
 	}
 
-	r, err := c.Query("select * from hui")
-	if err != nil {
-		panic(err)
-	}
-
-	var a any
-
-	for r.Next() {
-		err := r.Scan(&a)
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(555, a)
-	}
-
+	return Storage{Con: c}, err
 }

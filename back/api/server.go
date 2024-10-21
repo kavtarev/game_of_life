@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"game_of_life/api/handlers"
+	"game_of_life/db"
 	"game_of_life/internal"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -25,8 +27,9 @@ type Connection struct {
 }
 
 type Server struct {
-	port  string
-	conns map[string]*Connection
+	port    string
+	conns   map[string]*Connection
+	storage *db.Storage
 }
 
 var upgrader = websocket.Upgrader{
@@ -36,10 +39,11 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func NewServer(port string) *Server {
+func NewServer(port string, s *db.Storage) *Server {
 	return &Server{
-		port:  port,
-		conns: make(map[string]*Connection),
+		port:    port,
+		conns:   make(map[string]*Connection),
+		storage: s,
 	}
 }
 
