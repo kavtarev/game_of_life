@@ -66,8 +66,27 @@ function updateState(str) {
   }
 }
 
+let isMouseDown = false;
+
+document.addEventListener('mousedown', (event) => {
+  // Проверяем, что нажата левая кнопка мыши (event.button === 0)
+  if (event.button === 0) {
+    isMouseDown = true;
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  isMouseDown = false;
+});
+
 for (let i = 0; i < COUNT; i++) {
   const ch = document.createElement('input');
+  ch.addEventListener('mouseover', () => {
+    if (isMouseDown) {
+      ch.checked = !ch.checked
+    }
+  })
+
   ch.type = 'checkbox';
   inputs.push(ch)
   field.insertAdjacentElement('beforeend', ch);
