@@ -124,6 +124,7 @@ func (s *Server) parseMessage(ws *websocket.Conn, b []byte, conn *Connection) {
 			}()
 		}
 	case "stop":
+		conn.isGameInProgress = false
 		conn.stopCh <- struct{}{}
 	}
 
