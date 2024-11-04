@@ -83,7 +83,7 @@ for (let i = 0; i < COUNT; i++) {
   const ch = document.createElement('input');
   ch.addEventListener('mouseover', () => {
     if (isMouseDown) {
-      ch.checked = !ch.checked
+      ch.checked = true
     }
   })
 
