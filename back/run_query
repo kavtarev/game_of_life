@@ -1,12 +1,13 @@
 #!/bin/bash
 
 # Укажите URL, на который будут отправляться запросы
-URL="http://http://localhost:3000/delay"
+URL="http://localhost:3000/delay"
 
 # Цикл для выполнения 100 запросов
-for i in {1..10}
+for i in {1..1000}
 do
     # Выполняем curl запрос и выводим номер запроса
+    sleep 0.5
     echo "Запрос #$i"
     curl -s -o /dev/null -w "%{http_code}\n" "$URL"
 done
