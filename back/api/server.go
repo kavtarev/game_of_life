@@ -61,6 +61,7 @@ func (s *Server) Run() {
 	mux.Handle("/", http.FileServer(http.Dir("../front")))
 
 	mux.HandleFunc("/count", s.IncrementMiddleware(handlers.HandleCount))
+	mux.HandleFunc("/delay", s.HistogramMiddleware(handlers.HandleDelay, "handle_delay"))
 
 	// Expose /metrics HTTP endpoint using the created custom registry.
 	mux.Handle(
