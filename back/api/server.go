@@ -30,9 +30,11 @@ type Connection struct {
 }
 
 type Server struct {
-	port    string
-	conns   map[string]*Connection
-	storage *db.Storage
+	port       string
+	conns      map[string]*Connection
+	storage    *db.Storage
+	prometheus *prometheus.Registry
+	metrics    *metrics
 }
 
 var upgrader = websocket.Upgrader{
@@ -64,29 +66,32 @@ func NewMetrics(reg prometheus.Registerer) *metrics {
 }
 
 func NewServer(port string, s *db.Storage) *Server {
-	return &Server{
-		port:    port,
-		conns:   make(map[string]*Connection),
-		storage: s,
+	server := &Server{
+		port:       port,
+		conns:      make(map[string]*Connection),
+		storage:    s,
+		prometheus: prometheus.NewRegistry(),
 	}
+
+	server.metrics = NewMetrics(server.prometheus)
+	return server
 }
 
 func (s *Server) Run() {
 	mux := http.NewServeMux()
 
-	reg := prometheus.NewRegistry()
-	m := NewMetrics(reg)
-	m.gauge.Set(2)
-	m.info.With(prometheus.Labels{"version": "1.0.0"}).Set(1)
+	s.metrics.info.With(prometheus.Labels{"version": "1.0.0"}).Set(1)
 
 	mux.HandleFunc("/next", handlers.HandleComputeNextForm)
 	mux.HandleFunc("/ws", s.handleConnections)
 	mux.Handle("/", http.FileServer(http.Dir("../front")))
 
+	mux.HandleFunc("/count", s.IncrementMiddleware(handlers.HandleCount))
+
 	// Expose /metrics HTTP endpoint using the created custom registry.
 	mux.Handle(
 		"/metrics", promhttp.HandlerFor(
-			reg,
+			s.prometheus,
 			promhttp.HandlerOpts{
 				EnableOpenMetrics: true,
 			}),
