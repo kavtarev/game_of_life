@@ -4,9 +4,11 @@ const stopBtn = document.getElementById('stop-btn');
 const nextBtn = document.getElementById('next-btn');
 const clearBtn = document.getElementById('clear-btn');
 const computeBtn = document.getElementById('compute-btn');
+const handleStringBtn = document.getElementById('handle-string-btn');
+const handleBytesBtn = document.getElementById('handle-bytes-btn');
 
 const inputs = []
-const COUNT = 10000
+const COUNT = 16
 
 const ws = new WebSocket('ws://127.0.0.1:3000/ws')
 
@@ -31,6 +33,20 @@ nextBtn.addEventListener('click', async () => {
 
   const js = await r.json()
   updateState(js.data)
+})
+
+handleStringBtn.addEventListener('click', async () => {
+  const r = await fetch('http://localhost:3000/handle-string', {
+    method: 'POST', headers: {
+      'content-type': 'application/json'
+    }, body: JSON.stringify({ data: defaultGetState() })
+  })
+})
+handleBytesBtn.addEventListener('click', async () => {
+  const r = await fetch('http://localhost:3000/handle-byte', {
+    method: 'POST', headers: {
+    }, body: getStateAsArrayBuffer()
+  })
 })
 
 clearBtn.addEventListener('click', () => {
@@ -119,6 +135,8 @@ function getStateAsArrayBuffer() {
     buf[index] = temp
     index++
   }
+
+  console.log(new Uint8Array(buf));
 
   return new Uint8Array(buf);
 }

@@ -1,9 +1,6 @@
 package api
 
 import (
-	"bufio"
-	"fmt"
-	"io"
 	"net/http"
 
 	"game_of_life/api/handlers"
@@ -66,7 +63,8 @@ func (s *Server) Run() {
 	mux.HandleFunc("/count", s.IncrementMiddleware(handlers.HandleCount))
 	mux.HandleFunc("/delay", s.HistogramMiddleware(handlers.HandleDelay, "handle_delay"))
 
-	mux.HandleFunc("/buff", handleBuffers)
+	mux.HandleFunc("/handle-byte", handlers.HandleBytes)
+	mux.HandleFunc("/handle-string", handlers.HandleString)
 
 	// Expose /metrics HTTP endpoint using the created custom registry.
 	mux.Handle(
@@ -78,31 +76,4 @@ func (s *Server) Run() {
 	)
 
 	http.ListenAndServe(s.port, mux)
-}
-
-func handleBuffers(w http.ResponseWriter, r *http.Request) {
-	maxSize := 1024 * 1024
-
-	r.Body = http.MaxBytesReader(w, r.Body, int64(maxSize))
-	bReader := bufio.NewReader(r.Body)
-	var res []byte
-
-	for {
-		temp := make([]byte, 10)
-
-		n, err := bReader.Read(temp)
-		if err != nil && err != io.EOF {
-			http.Error(w, "Error reading request body", http.StatusInternalServerError)
-			return
-		}
-		if n == 0 {
-			break
-		}
-		res = append(res, temp[:n]...)
-	}
-	defer r.Body.Close()
-
-	// Вывод данных из тела запроса
-	fmt.Printf("Received data: %v\n", res)
-	w.Write([]byte("done"))
 }
