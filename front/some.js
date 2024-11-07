@@ -2,8 +2,6 @@ const { request } = require('http');
 
 const buff = new ArrayBuffer(10);
 
-
-
 for (let i = 0; i < 10; i++) {
   if (i & 1) {
     buff[i] = 12

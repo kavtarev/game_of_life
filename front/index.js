@@ -3,6 +3,7 @@ const startBtn = document.getElementById('start-btn');
 const stopBtn = document.getElementById('stop-btn');
 const nextBtn = document.getElementById('next-btn');
 const clearBtn = document.getElementById('clear-btn');
+const computeBtn = document.getElementById('compute-btn');
 
 const inputs = []
 const COUNT = 10000
@@ -22,14 +23,10 @@ stopBtn.addEventListener('click', () => {
 })
 
 nextBtn.addEventListener('click', async () => {
-  const arr = new Array(COUNT)
-  for (let i = 0; i < COUNT; i++) {
-    arr[i] = inputs[i].checked ? '1' : '0'
-  }
   const r = await fetch('http://localhost:3000/next', {
     method: 'POST', headers: {
       'content-type': 'application/json'
-    }, body: JSON.stringify({ data: arr.join('') })
+    }, body: JSON.stringify({ data: defaultGetState() })
   })
 
   const js = await r.json()
@@ -87,6 +84,7 @@ for (let i = 0; i < COUNT; i++) {
   })
 
   ch.type = 'checkbox';
+  ch.checked = Math.random() > 0.1
   inputs.push(ch)
   field.insertAdjacentElement('beforeend', ch);
 }
@@ -99,3 +97,85 @@ async function wait() {
     setTimeout(() => r(), 2000)
   })
 }
+
+function defaultGetState() {
+  const arr = new Array(COUNT)
+  for (let i = 0; i < COUNT; i++) {
+    arr[i] = inputs[i].checked ? '1' : '0'
+  }
+
+  return arr.join('')
+}
+
+function getStateAsArrayBuffer() {
+  const buf = new Array(COUNT / 8)
+  let index = 0
+
+  for (let i = 0; i < COUNT; i += 8) {
+    let temp = 0;
+    for (let j = 0; j < 8 && j + i < COUNT; j++) {
+      temp |= inputs[i + j].checked << 7 - j
+    }
+    buf[index] = temp
+    index++
+  }
+
+  return new Uint8Array(buf);
+}
+
+function getStateAsCountOccurrence() {
+  const buf = []
+  let amount = 1
+
+  for (let i = 1; i < COUNT; i++) {
+    if (inputs[i].checked === inputs[i - 1].checked) {
+      amount++
+      continue;
+    }
+    buf.push(amount, Number(inputs[i - 1].checked))
+    amount = 1
+  }
+
+  return buf
+}
+
+
+computeBtn.addEventListener('click', () => {
+  const amount = 100;
+
+  console.time("default")
+  for (let i = 0; i < amount; i++) {
+    defaultGetState()
+  }
+  console.timeEnd("default")
+
+  console.time("arrayBuffer")
+  for (let i = 0; i < amount; i++) {
+    getStateAsArrayBuffer()
+  }
+  console.timeEnd("arrayBuffer")
+
+  console.time("getStateAsCountOccurrence")
+  for (let i = 0; i < amount; i++) {
+    getStateAsCountOccurrence()
+  }
+  console.timeEnd("getStateAsCountOccurrence")
+
+  console.time("default2")
+  for (let i = 0; i < amount; i++) {
+    defaultGetState()
+  }
+  console.timeEnd("default2")
+
+  console.time("arrayBuffer2")
+  for (let i = 0; i < amount; i++) {
+    getStateAsArrayBuffer()
+  }
+  console.timeEnd("arrayBuffer2")
+
+  console.time("getStateAsCountOccurrence2")
+  for (let i = 0; i < amount; i++) {
+    getStateAsCountOccurrence()
+  }
+  console.timeEnd("getStateAsCountOccurrence2")
+})
