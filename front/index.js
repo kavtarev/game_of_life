@@ -52,8 +52,7 @@ ws.onmessage = function (msg) {
         updateState(data.data)
         break;
       default:
-        console.log(99999);
-        break;
+        throw new Error('should not be here ever');
     }
   } catch (error) {
     console.log("error: ", error)
@@ -91,6 +90,8 @@ for (let i = 0; i < COUNT; i++) {
   inputs.push(ch)
   field.insertAdjacentElement('beforeend', ch);
 }
+
+const buff = new ArrayBuffer(10);
 
 
 async function wait() {
