@@ -26,13 +26,12 @@ func HandleString(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Invalid Data"))
 		return
 	}
-	fmt.Println(b.Data)
+
 }
 
 func HandleBytes(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
-		w.WriteHeader(404)
-		w.Write([]byte("Only Post"))
+		http.Error(w, "Only Post", http.StatusNotFound)
 		return
 	}
 
@@ -65,5 +64,28 @@ func HandleBytes(w http.ResponseWriter, r *http.Request) {
 			s.WriteString(fmt.Sprintf("%v", (int(res[i])>>(7-j))&1))
 		}
 	}
-	fmt.Println(s.String())
+}
+
+func HandleBytesImproved(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only Post", http.StatusNotFound)
+		return
+	}
+
+	const maxSize = 1024 * 1024
+	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
+	defer r.Body.Close()
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading request body", http.StatusInternalServerError)
+		return
+	}
+
+	s := strings.Builder{}
+	s.Grow(len(body) * 8)
+
+	for _, b := range body {
+		s.WriteString(fmt.Sprintf("%08b", b))
+	}
 }
