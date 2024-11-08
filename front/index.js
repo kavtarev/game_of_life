@@ -8,7 +8,7 @@ const handleStringBtn = document.getElementById('handle-string-btn');
 const handleBytesBtn = document.getElementById('handle-bytes-btn');
 
 const inputs = []
-const COUNT = 16
+const COUNT = 10000
 
 const ws = new WebSocket('ws://127.0.0.1:3000/ws')
 
@@ -100,13 +100,10 @@ for (let i = 0; i < COUNT; i++) {
   })
 
   ch.type = 'checkbox';
-  ch.checked = Math.random() > 0.1
+  ch.checked = Math.random() > 0.4
   inputs.push(ch)
   field.insertAdjacentElement('beforeend', ch);
 }
-
-const buff = new ArrayBuffer(10);
-
 
 async function wait() {
   return new Promise(r => {
@@ -136,8 +133,6 @@ function getStateAsArrayBuffer() {
     index++
   }
 
-  console.log(new Uint8Array(buf));
-
   return new Uint8Array(buf);
 }
 
@@ -157,9 +152,56 @@ function getStateAsCountOccurrence() {
   return buf
 }
 
+function getStateAsPhil() {
+  const obj = []
+  let amountChecked = 0
+  let amountUnchecked = 0
+  const objReverse = []
+
+  for (let i = 0; i < COUNT; i++) {
+    if (inputs[i].checked) {
+      obj.push(i)
+      amountChecked++
+    } else {
+      objReverse.push(i)
+      amountUnchecked++
+    }
+  }
+
+  if (amountChecked > amountUnchecked) {
+    return { isRevers: true, obj: obj }
+  }
+
+  return { isRevers: false, obj: objReverse }
+
+}
+
+function getStateAsPhilString() {
+  const obj = ""
+  let amountChecked = 0
+  let amountUnchecked = 0
+  const objReverse = ""
+
+  for (let i = 0; i < COUNT; i++) {
+    if (inputs[i].checked) {
+      obj.concat(i)
+      amountChecked++
+    } else {
+      objReverse.concat(i)
+      amountUnchecked++
+    }
+  }
+
+  if (amountChecked > amountUnchecked) {
+    return { isRevers: true, obj: obj }
+  }
+
+  return { isRevers: false, obj: objReverse }
+
+}
 
 computeBtn.addEventListener('click', () => {
-  const amount = 100;
+  const amount = 1000;
 
   console.time("default")
   for (let i = 0; i < amount; i++) {
@@ -179,6 +221,18 @@ computeBtn.addEventListener('click', () => {
   }
   console.timeEnd("getStateAsCountOccurrence")
 
+  console.time("getStateAsPhil")
+  for (let i = 0; i < amount; i++) {
+    getStateAsPhil()
+  }
+  console.timeEnd("getStateAsPhil")
+
+  console.time("getStateAsPhilString")
+  for (let i = 0; i < amount; i++) {
+    getStateAsPhilString()
+  }
+  console.timeEnd("getStateAsPhilString")
+
   console.time("default2")
   for (let i = 0; i < amount; i++) {
     defaultGetState()
@@ -196,4 +250,16 @@ computeBtn.addEventListener('click', () => {
     getStateAsCountOccurrence()
   }
   console.timeEnd("getStateAsCountOccurrence2")
+
+  console.time("getStateAsPhil2")
+  for (let i = 0; i < amount; i++) {
+    getStateAsPhil()
+  }
+  console.timeEnd("getStateAsPhil2")
+
+  console.time("getStateAsPhilString2")
+  for (let i = 0; i < amount; i++) {
+    getStateAsPhilString()
+  }
+  console.timeEnd("getStateAsPhilString2")
 })

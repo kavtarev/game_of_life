@@ -35,14 +35,11 @@ func HandleBytes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	maxSize := 1024 * 1024
-
-	r.Body = http.MaxBytesReader(w, r.Body, int64(maxSize))
 	bReader := bufio.NewReader(r.Body)
 	var res []byte
 
 	for {
-		temp := make([]byte, 10)
+		temp := make([]byte, 20)
 
 		n, err := bReader.Read(temp)
 		if err != nil && err != io.EOF {
@@ -59,10 +56,8 @@ func HandleBytes(w http.ResponseWriter, r *http.Request) {
 	s := strings.Builder{}
 	s.Grow(len(res) * 8)
 
-	for i := 0; i < len(res); i++ {
-		for j := 0; j < 8; j++ {
-			s.WriteString(fmt.Sprintf("%v", (int(res[i])>>(7-j))&1))
-		}
+	for _, b := range res {
+		s.WriteString(fmt.Sprintf("%08b", b))
 	}
 }
 
@@ -72,8 +67,6 @@ func HandleBytesImproved(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	const maxSize = 1024 * 1024
-	r.Body = http.MaxBytesReader(w, r.Body, maxSize)
 	defer r.Body.Close()
 
 	body, err := io.ReadAll(r.Body)

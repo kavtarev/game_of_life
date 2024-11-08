@@ -34,3 +34,12 @@ func BenchmarkHandleVariantsHandleBytes(b *testing.B) {
 		HandleBytes(w, r)
 	}
 }
+
+func BenchmarkHandleVariantsHandleByteImprove(b *testing.B) {
+	r := httptest.NewRequest(http.MethodPost, "/handle-bytes", bytes.NewReader(make([]byte, 256)))
+	w := httptest.NewRecorder()
+
+	for i := 0; i < b.N; i++ {
+		HandleBytesImproved(w, r)
+	}
+}
