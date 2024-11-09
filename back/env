@@ -4,5 +4,6 @@ export DB_PORT=5433
 export DB_NAME=postgres
 export DB_USER=postgres
 export DB_PASSWORD=postgres
+export USE_FAKE_STORAGE=true
 
 go build -o ./bin/game_of_life ./cmd/main && ./bin/game_of_life

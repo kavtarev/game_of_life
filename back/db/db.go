@@ -12,6 +12,10 @@ type Storage struct {
 }
 
 func NewDb() (Storage, error) {
+	useFakeStorage := os.Getenv("USE_FAKE_STORAGE")
+	if useFakeStorage != "" {
+		return Storage{}, nil
+	}
 	user := os.Getenv("DB_USER")
 	pass := os.Getenv("DB_PASSWORD")
 	dbName := os.Getenv("DB_NAME")
