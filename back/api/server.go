@@ -51,14 +51,14 @@ func NewServer(port string, s *db.Storage) *Server {
 	return server
 }
 
-func (s *Server) Run() {
+func (s *Server) Run() error {
 	mux := http.NewServeMux()
 
 	s.metrics.info.With(prometheus.Labels{"version": "1.0.0"}).Set(1)
 
 	mux.HandleFunc("/next", handlers.HandleComputeNextForm)
 	mux.HandleFunc("/ws", s.handleConnections)
-	mux.Handle("/", http.FileServer(http.Dir("../front")))
+	mux.Handle("/", http.FileServer(http.Dir("/game/front")))
 
 	mux.HandleFunc("/count", s.IncrementMiddleware(handlers.HandleCount))
 	mux.HandleFunc("/delay", s.HistogramMiddleware(handlers.HandleDelay, "handle_delay"))
@@ -75,5 +75,5 @@ func (s *Server) Run() {
 			}),
 	)
 
-	http.ListenAndServe(s.port, mux)
+	return http.ListenAndServe(s.port, mux)
 }

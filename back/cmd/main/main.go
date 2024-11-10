@@ -9,11 +9,14 @@ import (
 func main() {
 	storage, err := db.NewDb()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("error in create storage", err)
 	}
 	defer storage.Con.Close()
 
 	server := api.NewServer(":3000", &storage)
 
-	server.Run()
+	err = server.Run()
+	if err != nil {
+		log.Fatal("error in run", err)
+	}
 }
