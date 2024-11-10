@@ -59,6 +59,7 @@ func (s *Server) Run() error {
 	mux.HandleFunc("/next", handlers.HandleComputeNextForm)
 	mux.HandleFunc("/ws", s.handleConnections)
 	mux.Handle("/", http.FileServer(http.Dir("/game/front")))
+	// mux.Handle("/", http.FileServer(http.Dir("../front")))
 
 	mux.HandleFunc("/count", s.IncrementMiddleware(handlers.HandleCount))
 	mux.HandleFunc("/delay", s.HistogramMiddleware(handlers.HandleDelay, "handle_delay"))

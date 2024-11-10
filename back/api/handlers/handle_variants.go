@@ -28,7 +28,7 @@ func HandleString(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 	w.Write([]byte("done"))
 
 }
@@ -64,7 +64,7 @@ func HandleBytes(w http.ResponseWriter, r *http.Request) {
 		s.WriteString(fmt.Sprintf("%08b", b))
 	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
 	w.Write([]byte("done"))
 }
 

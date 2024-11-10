@@ -9,8 +9,9 @@ const handleBytesBtn = document.getElementById('handle-bytes-btn');
 
 const inputs = []
 const COUNT = 10000
+const host = '127.0.0.1:3000'
 
-const ws = new WebSocket('ws://127.0.0.1:3000/ws')
+const ws = new WebSocket(`ws://${host}/ws`)
 
 startBtn.addEventListener('click', () => {
   const arr = new Array(COUNT)
@@ -25,7 +26,7 @@ stopBtn.addEventListener('click', () => {
 })
 
 nextBtn.addEventListener('click', async () => {
-  const r = await fetch('http://localhost:3000/next', {
+  const r = await fetch(`http://${host}/next`, {
     method: 'POST', headers: {
       'content-type': 'application/json'
     }, body: JSON.stringify({ data: defaultGetState() })
@@ -36,14 +37,14 @@ nextBtn.addEventListener('click', async () => {
 })
 
 handleStringBtn.addEventListener('click', async () => {
-  const r = await fetch('http://localhost:3000/handle-string', {
+  const r = await fetch(`http://${host}/handle-string`, {
     method: 'POST', headers: {
       'content-type': 'application/json'
     }, body: JSON.stringify({ data: defaultGetState() })
   })
 })
 handleBytesBtn.addEventListener('click', async () => {
-  const r = await fetch('http://localhost:3000/handle-byte', {
+  const r = await fetch(`http://${host}/handle-byte`, {
     method: 'POST', headers: {
     }, body: getStateAsArrayBuffer()
   })
