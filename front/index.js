@@ -204,63 +204,63 @@ function getStateAsPhilString() {
 computeBtn.addEventListener('click', () => {
   const amount = 1000;
 
-  console.time("default")
+  console.time("compute as string")
   for (let i = 0; i < amount; i++) {
     defaultGetState()
   }
-  console.timeEnd("default")
+  console.timeEnd("compute as string")
 
-  console.time("arrayBuffer")
+  console.time("compute as array buffer")
   for (let i = 0; i < amount; i++) {
     getStateAsArrayBuffer()
   }
-  console.timeEnd("arrayBuffer")
+  console.timeEnd("compute as array buffer")
 
-  console.time("getStateAsCountOccurrence")
+  console.time("compute as amount in order")
   for (let i = 0; i < amount; i++) {
     getStateAsCountOccurrence()
   }
-  console.timeEnd("getStateAsCountOccurrence")
+  console.timeEnd("compute as amount in order")
 
-  console.time("getStateAsPhil")
+  console.time("compute as Phil suggested as array")
   for (let i = 0; i < amount; i++) {
     getStateAsPhil()
   }
-  console.timeEnd("getStateAsPhil")
+  console.timeEnd("compute as Phil suggested as array")
 
-  console.time("getStateAsPhilString")
+  console.time("compute as Phil suggested as string")
   for (let i = 0; i < amount; i++) {
     getStateAsPhilString()
   }
-  console.timeEnd("getStateAsPhilString")
+  console.timeEnd("compute as Phil suggested as string")
 
-  console.time("default2")
+  console.time("PART2 compute as string")
   for (let i = 0; i < amount; i++) {
     defaultGetState()
   }
-  console.timeEnd("default2")
+  console.timeEnd("PART2 compute as string")
 
-  console.time("arrayBuffer2")
+  console.time("PART2 compute as array buffer")
   for (let i = 0; i < amount; i++) {
     getStateAsArrayBuffer()
   }
-  console.timeEnd("arrayBuffer2")
+  console.timeEnd("PART2 compute as array buffer")
 
-  console.time("getStateAsCountOccurrence2")
+  console.time("PART2 compute as amount in order")
   for (let i = 0; i < amount; i++) {
     getStateAsCountOccurrence()
   }
-  console.timeEnd("getStateAsCountOccurrence2")
+  console.timeEnd("PART2 compute as amount in order")
 
-  console.time("getStateAsPhil2")
+  console.time("PART2 compute as Phil suggested as array")
   for (let i = 0; i < amount; i++) {
     getStateAsPhil()
   }
-  console.timeEnd("getStateAsPhil2")
+  console.timeEnd("PART2 compute as Phil suggested as array")
 
-  console.time("getStateAsPhilString2")
+  console.time("PART2 compute as Phil suggested as string")
   for (let i = 0; i < amount; i++) {
     getStateAsPhilString()
   }
-  console.timeEnd("getStateAsPhilString2")
+  console.timeEnd("PART2 compute as Phil suggested as string")
 })
